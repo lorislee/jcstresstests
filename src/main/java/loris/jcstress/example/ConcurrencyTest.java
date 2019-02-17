@@ -49,6 +49,7 @@ public class ConcurrencyTest {
     @Actor
     public void actor2(II_Result r) {
         // Put the code for second thread here
+        System.out.println("second jcstress demo");
     }
 
 }
