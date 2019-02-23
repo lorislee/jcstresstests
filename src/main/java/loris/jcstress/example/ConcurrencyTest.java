@@ -25,6 +25,7 @@
  */
 package loris.jcstress.example;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import org.openjdk.jcstress.annotations.Actor;
 import org.openjdk.jcstress.annotations.Expect;
 import org.openjdk.jcstress.annotations.JCStressTest;
@@ -47,9 +48,9 @@ import org.openjdk.jcstress.infra.results.II_Result;
  * about the concurrent behavior. For example, running this test would yield:
  * 
  * [OK] ConcurrencyTest (JVM args: [-server]) Observed state Occurrences Expectation Interpretation
- * 1, 1 54,734,140 ACCEPTABLE Both threads came up with the same value: atomicity failure. 
- * 1, 2 47,037,891 ACCEPTABLE actor1 incremented, then actor2. 
- * 2, 1 53,204,629 ACCEPTABLE actor2 incremented, then actor1.
+ * 1, 1 54,734,140 ACCEPTABLE Both threads came up with the same value: atomicity failure. 1, 2
+ * 47,037,891 ACCEPTABLE actor1 incremented, then actor2. 2, 1 53,204,629 ACCEPTABLE actor2
+ * incremented, then actor1.
  * 
  * How to run this test: $ java -jar jcstresstests/target/jcstress.jar -t ConcurrencyTest
  */
@@ -64,18 +65,19 @@ import org.openjdk.jcstress.infra.results.II_Result;
 @State
 public class ConcurrencyTest {
 
-    int v;
+    // volatile int v;
+    AtomicInteger v = new AtomicInteger(0);
 
     @Actor
     public void actor1(II_Result r) {
         // Put the code for first thread here
-        r.r1 = ++v; // record result from actor1 to field r1
+        r.r1 = v.incrementAndGet(); // record result from actor1 to field r1
     }
 
     @Actor
     public void actor2(II_Result r) {
         // Put the code for second thread here
-        r.r2 = ++v; // record result from actor2 to field r2
+        r.r2 = v.incrementAndGet(); // record result from actor2 to field r2
     }
 
 }
