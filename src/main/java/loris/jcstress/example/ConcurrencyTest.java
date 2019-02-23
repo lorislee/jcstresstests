@@ -34,22 +34,48 @@ import org.openjdk.jcstress.infra.results.II_Result;
 
 // See jcstress-samples or existing tests for API introduction and testing guidelines
 
+/*
+ * This is our first concurrency test. It is deliberately simplistic to show testing approaches,
+ * introduce JCStress APIs, etc.
+ * 
+ * Suppose we want to see if the field increment is atomic. We can make test with two actors, both
+ * actors incrementing the field and recording what value they observed into the result object. As
+ * JCStress runs, it will invoke these methods on the objects holding the field once per each actor
+ * and instance, and record what results are coming from there.
+ * 
+ * Done enough times, we will get the history of observed results, and that would tell us something
+ * about the concurrent behavior. For example, running this test would yield:
+ * 
+ * [OK] ConcurrencyTest (JVM args: [-server]) Observed state Occurrences Expectation Interpretation
+ * 1, 1 54,734,140 ACCEPTABLE Both threads came up with the same value: atomicity failure. 
+ * 1, 2 47,037,891 ACCEPTABLE actor1 incremented, then actor2. 
+ * 2, 1 53,204,629 ACCEPTABLE actor2 incremented, then actor1.
+ * 
+ * How to run this test: $ java -jar jcstresstests/target/jcstress.jar -t ConcurrencyTest
+ */
+
+// Mark the class as JCStress test.
 @JCStressTest
 // Outline the outcomes here. The default outcome is provided, you need to remove it:
-@Outcome(id = "0, 0", expect = Expect.ACCEPTABLE, desc = "Default outcome.")
+@Outcome(id = "1, 1", expect = Expect.ACCEPTABLE_INTERESTING,
+        desc = "Both actors came up with the same value: atomicity failure.")
+@Outcome(id = "1, 2", expect = Expect.ACCEPTABLE, desc = "actor1 incremented, then actor2.")
+@Outcome(id = "2, 1", expect = Expect.ACCEPTABLE, desc = "actor2 incremented, then actor1.")
 @State
 public class ConcurrencyTest {
+
+    int v;
 
     @Actor
     public void actor1(II_Result r) {
         // Put the code for first thread here
-        System.out.println("first jcstress demo");
+        r.r1 = ++v; // record result from actor1 to field r1
     }
 
     @Actor
     public void actor2(II_Result r) {
         // Put the code for second thread here
-        System.out.println("second jcstress demo");
+        r.r2 = ++v; // record result from actor2 to field r2
     }
 
 }
